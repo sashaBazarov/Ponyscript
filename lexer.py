@@ -1,81 +1,81 @@
 import re
 from wordlist import wordlist
+from logs import print_log
 
-def check_func_format(input_string):
-    pattern = r'^\w+\s*->>\s*\((?:"[^"]*"|[^,]+)(?:,\s*(?:"[^"]*"|[^,]+))*\)$'
-    pattern2 = r'^\w+\s*->>\(\)$'
-    return bool(re.match(pattern, input_string)) or bool(re.match(pattern2, input_string))
+replacements = wordlist
 
-def remove_text_in_quotes(s):
-    return re.sub(r'\".*?\"', '', s)
+variable_types = ['int', 'float', 'double', 'char', 'bool', 'string']
 
-def split_string(s):
-    parts = re.split(r'\s(?![^()]*\))', s)
-    return parts
+def find_variables(tokens):
+    variables = []
+    for i in range(0, len(tokens)):
+        if tokens[i] in variable_types:
+            j = 1
+            while tokens[i + j] == '*':
+                j += 1
+            variables.append(tokens[i+j])
 
-def split_by_dot(s):
-    parts = re.split(r'\.(?![^()]*\))', s, maxsplit=1)
-    return parts
+    return variables
 
-def check_header(string):
-    pattern = r'^\".+\.psh\"$'
-    if re.match(pattern, string):
-        return True
-    else:
-        return False
+def find_includes(tokens):
+    includes = []
+    for i in range(0, len(tokens)):
+        if tokens[i] == 'friend':
+            includes.append(tokens[i+1])
+    return includes
 
-def translate_token(token:str):
-    if check_func_format(token):
-        if token.split("->>")[0] in wordlist:
-            return wordlist[token.split("->>")[0]].replace("--arg--", token.split("->>")[1][1:-1])
-        else:
-            return f'{token.split("->>")[0]}({token.split("->>")[1][1:-1]})'
-    else:
-        if token in wordlist:
-            return wordlist[token]
-        else:
-             if check_header(token):
-                 token = token.replace('"', '')
-                 token = f'"{token.replace(".psh", ".h")}"'
-             return token
+def find_classes(tokens:list):
+    classes = []
+    insert_indexes = []
+    for i in range(0, len(tokens)-1):
+        if tokens[i] == 'class':
+            classes.append(tokens[i+1])
+            j=0
+            while tokens[i+j] != "{":
+                j+=1
+                if tokens[i+j] == '{':
+                    insert_indexes.append(i+j+1) 
+
+    updated_tokens = tokens
+    for i in insert_indexes:
+        tokens.insert(i, '\n')
+        tokens.insert(i+1, 'public:')
             
-def analizetext(string:str):
-    dotcomma = False
-    try:
-        if string[-1] == ";":
-            string = string[:-1]
-            dotcomma = True
-    except IndexError:pass
 
-    out = ""
-    #print(split_string(string))
-    for token in split_string(string):
+    return classes, tokens
 
-        if len(split_by_dot(token)) > 1:
+def translate_tokens(tokens, variables, classes):
+    includes = find_includes(tokens)
+    for i in range(0, len(tokens)):
+        try:
+            if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes:
+                if tokens[i] in replacements:
+                    tokens[i] = replacements[tokens[i]]
+                else: 
+                    raise Exception(f"Error: {tokens[i]} can`t be defined as command or object name")
+        except IndexError: pass
+    return tokens
 
-            if check_header(token):
-                out = out + " " + translate_token(token)
+def lexical_analyzer(code):
+    tokens = re.findall(r'\<.*?\>|\b(?:int|#include|using|namespace|void|return|string|public|private|protected|byte|bool|neigh|read|class)\b|\w+|".*?"|[.,!?;(){}\[\]=+\-*/]|[\n]', code)
+    tokens = ["#include" if item == "include" else item for item in tokens]
+    return tokens
 
-            else:
-                first = True
-                for tokenpart in split_by_dot(token):
-                    
-                    if first:
-                        out = out + translate_token(tokenpart)
-                        first = False
-                    else:
-                        out = out + "." + translate_token(tokenpart)
+def assemble_code(tokens):
+    assembled_code = ''
+    for token in tokens:
+        if token == '\n':
+            assembled_code += '\n'
+        elif token.startswith('"') and token.endswith('"'):
+            assembled_code += ' ' + token
+        elif assembled_code.endswith('\n'):
+            assembled_code += token
+        elif token in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}']:
+            assembled_code += token
+        elif token == 'using':
+            assembled_code += token
         else:
-            out = out + " " + translate_token(token)
+            assembled_code += ' ' + token
+    return assembled_code
 
-    if dotcomma:
-        out += ";"
-    
-    out = out.strip()
 
-    return out
-
-if __name__ == "__main__":
-    print(analizetext(''))
-                
-    #print(len(split_by_dot('neigh->>(5 + 3)')))

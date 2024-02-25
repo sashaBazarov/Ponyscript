@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include "ponyexceptions.h"
+#include <conio.h>
 
 #define FILE_INFO std::string(__FILE__)
 #define LINE_INFO std::to_string(__LINE__)
@@ -42,10 +43,20 @@ void neighln(string input){
     cout << input << endl;
 }
 
-string read(){
+string read(const string& text /*= ""*/){
+    if (text != "") {
+        cout << text;
+    }
     string input;
     cin >> input;
-    return input.c_str();
+    return input;
+}
+
+void readkey(){
+    // if(text != ""){
+    // cout << text;
+    // }
+    getch();
 }
 
 

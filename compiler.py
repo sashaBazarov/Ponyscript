@@ -1,10 +1,23 @@
-from lexer import analizetext
+from lexer import *
 import os
 import shutil
 from pathlib import Path
 import sys
-
+import subprocess
+import gccdocksparser
+from logs import print_log, clear_log, print_error, log_path
+from datetime import datetime
 try:
+
+    floader_dir = sys.argv[1]
+
+    try:
+        os.makedirs(floader_dir + "/logs")
+    except: pass
+
+    log_path = floader_dir + "/logs/" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"
+
+    clear_log()
 
     def extract_additional_files(file_path):
             with open(file_path, 'r') as file:
@@ -21,27 +34,30 @@ try:
 
                 return additional_files
 
-    floader_dir = sys.argv[1]
-    # with open(".ponytemp") as pt:
-    #     floader_dir = pt.readlines()[0]
+    print_log("Compiler started")
 
     try:
         os.makedirs(floader_dir + "/bin")
+        print_log("Created bin directory")
     except FileExistsError:
+        print_log("Bin directory already exists")
         pass
 
     bin_dir = floader_dir + "/bin"
 
     buildfiles = ""
 
-
-
     settings = {"filename":"",}
+    
+    print_log("Reading files in floader")
 
     print(os.listdir(floader_dir))
 
+    variables = []
+    classes = []
 
     for name in os.listdir(floader_dir):
+
 
         filename, fileext = os.path.splitext(name)
 
@@ -60,35 +76,50 @@ try:
             compile = False
 
         if compile:
-            print(name)
 
-            with open(f"{floader_dir}/{name}", "r") as f:
+            print_log("Compiling file " + name)
+
+            with open(f"{floader_dir}/{name}", "r", encoding="utf-8") as f:
                 lines = [line for line in f]
+                code = "";
+                for line in lines:
+                    code = code + line
 
-                with open(f"{bin_dir}/{filename}{fileext}", "w") as file:
+                with open(f"{bin_dir}/{filename}{fileext}", "w", encoding="utf-8") as file:
                     file.write("")
                     file.close()
 
-                with open(f"{bin_dir}/{filename}{fileext}", "a") as output:
+                with open(f"{bin_dir}/{filename}{fileext}", "a", encoding="utf-8") as output:
                     output.write('#include <iostream>' + '\n')
                     output.write('#include "lib.h"' + '\n')
                     output.write(f'#define FILE_INFO {name}' + '\n')
-                    for line in lines:
-                        #print(analizetext(line.strip()))
-                        output.write(analizetext(line.strip()) + "\n")
-                
+                    output.write('using namespace std;' + '\n')
+
+                    print_log("Lexical analysis")
+                    tokens = lexical_analyzer(code)
+                    print_log("Variable analysis")
+                    for i in find_variables(tokens):
+                        variables.append(i)
+                    print_log("Class analysis")
+                    classes_list, updated_tokens = find_classes(tokens)
+                    for i in classes_list:
+                        classes.append(i)
+                    print_log("Translation")
+                    tokens = translate_tokens(updated_tokens, variables, classes)
+                    print_log("Assembling code")
+                    assembled_code = assemble_code(tokens)
+                    print_log("Writing code to file")
+                    output.write(assembled_code)
+                    print_log("Finished compiling file " + name)
             buildfiles = buildfiles + f"{bin_dir}/{filename}{fileext} "
 
-
-
-
+    print_log("Reading configuration file")
     with open(f"{floader_dir}/.ponycfg") as cfg:
         additional_start = None
         additional_end = None
         for cfgline in cfg.readlines():
             if cfgline.split("=")[0].strip() == "[File Name]":
                 settings["filename"] = cfgline.split("=")[1].strip()
-
 
     try:
         os.mkdir(f"{bin_dir}/lib")
@@ -97,76 +128,42 @@ try:
 
     absp = os.path.abspath(__file__).replace("compiler.py", "")
 
+    buildfiles = buildfiles + f"{bin_dir}/lib/lib.h "
+    buildfiles = buildfiles + f"{bin_dir}/lib/lib.cpp "
+    buildfiles = buildfiles + f"{bin_dir}/lib/file_manager.cpp "
+    buildfiles = buildfiles + f"{bin_dir}/lib/ponyexceptions.h "
+    buildfiles = buildfiles + f"{bin_dir}/lib/exceptions.cpp "
+    buildfiles = buildfiles + f"{bin_dir}/lib/run.cpp "
 
-
-    # shutil.copy2(f"{absp}lib/lib.cpp", f"{bin_dir}")
-    # shutil.copy2(f"{absp}lib/lib.h", f"{bin_dir}")
-
-    buildfiles = buildfiles + f"{bin_dir}/lib.h "
-    buildfiles = buildfiles + f"{bin_dir}/lib.cpp "
-    buildfiles = buildfiles + f"{bin_dir}/file_manager.cpp "
-    buildfiles = buildfiles + f"{bin_dir}/ponyexceptions.h "
-    buildfiles = buildfiles + f"{bin_dir}/exceptions.cpp "
-    buildfiles = buildfiles + f"{bin_dir}/run.cpp "
-
-    print(absp)
-
-    shutil.copy(f"{absp}lib/lib.h", bin_dir)
-    shutil.copy(f"{absp}lib/lib.cpp", bin_dir)
-    shutil.copy(f"{absp}lib/file_manager.cpp", bin_dir)
-    shutil.copy(f"{absp}lib/ponyexceptions.h", bin_dir)
-    shutil.copy(f"{absp}lib/exceptions.cpp", bin_dir)
-
+    print_log("Copying additional files")
     shutil.copy(f"{absp}lib/lib.h", bin_dir + "/lib")
     shutil.copy(f"{absp}lib/lib.cpp", bin_dir  + "/lib")
     shutil.copy(f"{absp}lib/file_manager.cpp", bin_dir  + "/lib")
     shutil.copy(f"{absp}lib/ponyexceptions.h", bin_dir  + "/lib")
     shutil.copy(f"{absp}lib/exceptions.cpp", bin_dir  + "/lib")
 
-
-    with open(f"{bin_dir}/run.h", "w") as run:
+    print_log("Building executable")
+    print_log("Writing run.h")
+    with open(f"{bin_dir}/lib/run.h", "w") as run:
         run.write(f'int magic(int argc, char *argv[]);')
-
-    shutil.copy(f"{absp}lib/run.cpp", bin_dir)
-
+    print_log("Writing run.cpp")
+    shutil.copy(f"{absp}lib/run.cpp", bin_dir+"/lib")
     for file in extract_additional_files(f"{floader_dir}/.ponycfg"):
         buildfiles = buildfiles + file + " "
 
+    print_log("Starting gcc compyler")
+    result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I lib -finput-charset=UTF-8 {buildfiles}", capture_output=True)
 
-    print(f"{absp}ucrt64/bin/g++.exe -o {settings['filename']} {buildfiles}")
+    print_log(gccdocksparser.parse(result.stderr.decode()))
 
-    os.system(f"{absp}ucrt64/bin/g++.exe -o {settings['filename']} {buildfiles}")
-
-    try:
-        os.remove(bin_dir+settings["filename"]+".exe")
-    except:pass
-
-    try:
-        shutil.move(settings["filename"]+".exe", bin_dir)
-    except:
-        try:
-            os.remove(bin_dir+ "/" + settings["filename"]+".exe")
-        except:pass
-        shutil.move(settings["filename"]+".exe", bin_dir)
-
-
-
-    #os.system(f"{os.path.dirname(__file__)}\\bin\\pony.exe")
-    print("build complete")
+    if result.returncode == 0:
+        print_log("\n")
+        print_log("Compilation successful!") 
+    else:
+        raise Exception("Compilation failed!")
 
 except Exception as e:
-    print("build failed")
-    print(e)
+    print_log("\n")
+    print_error(str(e))
     
-
-try:
-    os.remove(bin_dir+'/lib.h')
-    os.remove(bin_dir+'/lib.cpp')
-    os.remove(bin_dir+'/file_manager.cpp')
-    os.remove(bin_dir+'/ponyexceptions.h')
-    os.remove(bin_dir+'/exceptions.cpp')
-    os.remove(bin_dir+'/run.cpp')
-    os.remove(bin_dir+'/run.h')
-except:pass
-
 exit()

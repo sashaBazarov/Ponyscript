@@ -58,6 +58,22 @@ private:
 
 void neighln(std::string input);
 void neigh(std::string input);
-std::string read();
+
+
 
 void test_pony_exception();
+
+/**
+ * Read a string from standard input with optional prompt.
+ * 
+ * @param text Optional prompt text to display.
+ * @return The string read from standard input.
+ */
+std::string read(const std::string& text = "");
+
+/**
+ * Read a keypress from standard input without echoing to the console, with optional prompt.
+ * 
+ * @param text Optional prompt text to display.
+ */
+void readkey();

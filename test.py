@@ -1,19 +1,73 @@
+import re
+import os
+
+def find_new_functions(code):
+    # Regular expression pattern to match function declarations
+    pattern = r'(?<!\w)(?:void|int|char|float|double|string|bool)\s+\w+\s*\([^)]*\)\s*{'
+    matches = re.findall(pattern, code)
+
+    out = []
+    if matches:
+
+        for match in matches:
+            try:
+                out.append(match.replace("{", "").split("\n")[0] + ";")
+            except:
+                out.append(match.replace("{", "") + ";")
+    
+    return out
 
 
-def extract_additional_files(file_path):
-        with open(file_path, 'r') as file:
-            additional_files = []
-            start_tag_found = False
+import re
 
-            for line in file:
-                if start_tag_found:
-                    if line.strip() == '[Additional Files end]':
-                        break
-                    additional_files.append(line.strip())
-                elif line.strip() == '[Additional Files start]':
-                    start_tag_found = True
+def find_new_classes(filename):
+    """
+    Find and print all new class declarations in a .cpp file.
+    """
+    if not filename.endswith('.cpp'):
+        print("Error: Input file must be a .cpp file.")
+        return
 
-            return additional_files
+    if not os.path.exists(filename):
+        print(f"Error: File {filename} does not exist.")
+        return
+
+    with open(filename, 'r') as file:
+        content = file.read()
+
+    # Regular expression pattern to match class declarations
+    pattern = r'\bclass\s+\w+\s*(?::{0,2}\s*(?:public|private|protected)?\s*\w+)?\s*{'
+    matches = re.findall(pattern, content)
+
+    if matches:
+        print("New class declarations found:")
+        for match in matches:
+            print(match)
+    else:
+        print("No new class declarations found.")
+
+if __name__ == "__main__":
+    filename = input("Enter filename for .cpp file: ")
+    find_new_classes(filename)
 
 
-print(extract_additional_files("C:\pony\.ponycfg"))
+# if __name__ == "__main__":
+#     print(*find_new_functions("""
+# #include <iostream>
+# #include "lib.h"
+# #define FILE_INFO prog.psc
+# using namespace std;
+#  #include <locale.h>
+
+# int magic( int argc, char* argv[])
+# {
+# setlocale( LC_ALL, "ru_.utf-8");
+
+# string a= read( "First num: ");
+# string b= read( "Second num: ");
+# neighln( "Sum equal "+ to_string( stoi( a)+ stoi( b)));
+# neigh( "Press any key to continue...");
+# readkey();
+# return 0;
+# }
+# """))
