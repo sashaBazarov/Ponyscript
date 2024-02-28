@@ -1,5 +1,5 @@
 import re
-from wordlist import wordlist
+from lib.wordlist import wordlist
 
 def check_func_format(input_string):
     pattern = r'^\w+\s*->>\s*\((?:"[^"]*"|[^,]+)(?:,\s*(?:"[^"]*"|[^,]+))*\)$'

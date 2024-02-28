@@ -59,6 +59,23 @@ void readkey(){
     getch();
 }
 
+string str(int num){
+    return to_string(num);
+}
+
+std::string str(double num){
+    return to_string(num);
+}
+
+
+int to_int(std::string string){
+    return stoi(string);
+}
+
+
+
+
+
 
 
 

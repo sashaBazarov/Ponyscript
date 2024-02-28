@@ -7,6 +7,7 @@ int main(int argc, char *argv[]) {
 try
 {
     return magic(argc, argv);
+
 }
 catch(const std::exception& e)
 {

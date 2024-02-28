@@ -1,0 +1,1 @@
+g++ -o pony programm.cpp

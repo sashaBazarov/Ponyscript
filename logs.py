@@ -3,6 +3,8 @@ import colorama
 
 log_path:str = 'lastest.log'
 
+
+
 def print_log(log):
     
     if log != '':
