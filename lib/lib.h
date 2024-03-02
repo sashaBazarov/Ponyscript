@@ -8,34 +8,26 @@
 #include <functional>
 #include <string>
 #include <exception>
-
-
+#include "ponystring.h"
 
 #ifndef MYSTRINGFUNCTIONS_H  // Это директива препроцессора, чтобы избежать повторного включения файла
 #define MYSTRINGFUNCTIONS_H
 
-//Test functions
-int sum(int a, int b);
-void test_pony_exception();
-//File fuctions
-std::string readFile(const std::string& filename);
 
 //Console functions
-void neighln(std::string input);
-void neigh(std::string input);
+void neighln(ponystring input);
+void neigh(ponystring input);
 
-std::string read(const std::string& text = "");
-
+ponystring read();
 
 void readkey();
 
 //String functions
-std::string replaceAll(const std::string& str, const std::string& oldSubstr, const std::string& newSubstr);
 
 //Convert functions
-std::string str(int num);
-std::string str(double num);
+ponystring str(double num, bool);
+ponystring str(int num, bool);
 
-int to_int(std::string string);
+int to_int(const ponystring& str);
 
 #endif

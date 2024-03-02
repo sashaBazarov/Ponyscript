@@ -1,0 +1,1 @@
+buildintclasses = ["Random", "ponyregex"]

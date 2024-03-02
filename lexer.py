@@ -57,10 +57,10 @@ def find_classes(tokens:list):
                 if tokens[i+j] == '{':
                     insert_indexes.append(i+j+1) 
 
-    updated_tokens = tokens
-    for i in insert_indexes:
-        tokens.insert(i, '\n')
-        tokens.insert(i+1, 'public:')
+    # updated_tokens = tokens
+    # for i in insert_indexes:
+    #     tokens.insert(i, '\n')
+    #     tokens.insert(i+1, 'public:')
             
 
     return classes, tokens
@@ -71,7 +71,7 @@ def translate_tokens(tokens, variables, classes):
     includes = find_includes(tokens)
     for i in range(0, len(tokens)):
         try:
-            if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and tokens[i] not in constants and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
+            if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and tokens[i] not in constants and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
                 if tokens[i] in replacements:
                     tokens[i] = replacements[tokens[i]]
                 else: 
@@ -100,7 +100,7 @@ def merge_float_tokens(tokens):
     return merged_tokens
 
 def lexical_analyzer(code):
-    tokens = re.findall(r'\<.*?\>|\b(?:int|#include|using|namespace|void|return|string|public|private|protected|byte|bool|neigh|read|class)\b|\w+|".*?"|[.,!?;:(){}\[\]=+\-*/]|[\n]', code)
+    tokens = re.findall(r'\<.*?\>|\b(?:int|#include|using|namespace|void|return|string|public|private|protected|byte|bool|neigh|read|class)\b|\w+|".*?"|[.,!?;:(){}\[\]=+\-*/<>]|[\n]', code)
     tokens = ["#include" if item == "include" else item for item in tokens]
     return tokens
 
@@ -114,7 +114,7 @@ def assemble_code(tokens):
             assembled_code += ' ' + token
         elif assembled_code.endswith('\n'):
             assembled_code += token
-        elif token in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':']:
+        elif token in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>']:
             assembled_code += token
         elif token == 'using':
             assembled_code += token

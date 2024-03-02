@@ -1,30 +1,27 @@
+#include "lib.h"
+#include "ponystring.h"
 #include <fstream>
-#include <string>
 
-// Функция для чтения файла и возвращения его содержимого в виде строки
-std::string readFile(const std::string& filename) {
-    std::ifstream file(filename);
-    std::string content;
+ponystring readFile(const ponystring& filename) {
+    std::ifstream file(filename.str());
+    ponystring content;
     if (file.is_open()) {
         std::string line;
         while (std::getline(file, line)) {
             content += line + "\n";
         }
         file.close();
-        return content;
-    } else {
-        return ""; // Если не удалось открыть файл, возвращаем пустую строку
     }
+    return content;
 }
 
-// Функция для записи текста в файл
-bool writeToFile(const std::string& filename, const std::string& content) {
-    std::ofstream file(filename);
+bool writeToFile(const ponystring& filename, const ponystring& content) {
+    std::ofstream file(filename.str());
     if (file.is_open()) {
-        file << content;
+        file << content.str();
         file.close();
-        return true; // Возвращаем true, если запись прошла успешно
+        return true;
     } else {
-        return false; // Возвращаем false, если не удалось открыть файл для записи
+        return false;
     }
 }
