@@ -85,6 +85,60 @@ public:
         }
     }
 
+    void remove(const T& value) {
+        Node<T>* current = head;
+        Node<T>* prev = nullptr;
+
+        while (current != nullptr) {
+            if (current->data == value) {
+                if (prev == nullptr) { // Если удаляемый элемент - первый в списке
+                    head = current->next;
+                } else {
+                    prev->next = current->next;
+                }
+
+                if (current->next == nullptr) { // Если удаляемый элемент - последний в списке
+                    tail = prev;
+                }
+
+                Node<T>* temp = current;
+                current = current->next;
+                delete temp;
+                size--;
+            } else {
+                prev = current;
+                current = current->next;
+            }
+        }
+    }
+
+    void remove_index(size_t index) {
+        if (index >= size) {
+            throw std::out_of_range("Index out of range");
+        }
+
+        Node<T>* current = head;
+        Node<T>* prev = nullptr;
+
+        for (size_t i = 0; i < index; ++i) {
+            prev = current;
+            current = current->next;
+        }
+
+        if (prev == nullptr) {
+            head = current->next;
+        } else {
+            prev->next = current->next;
+        }
+
+        if (current->next == nullptr) {
+            tail = prev;
+        }
+
+        delete current;
+        size--;
+    }
+
     T& operator[](size_t index) {
         if (index >= size) {
             throw std::out_of_range("Index out of range");
@@ -124,5 +178,7 @@ public:
         return size;
     }
 };
+
+
 
 #endif // LIST_H

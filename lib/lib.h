@@ -25,8 +25,8 @@ void readkey();
 //String functions
 
 //Convert functions
-ponystring str(double num, bool);
-ponystring str(int num, bool);
+ponystring str(double num);
+ponystring str(int num);
 
 int to_int(const ponystring& str);
 

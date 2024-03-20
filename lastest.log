@@ -1,22 +1,22 @@
-[00:01:26] Compiler started
-[00:01:26] Bin directory already exists
-[00:01:26] Reading files in floader
-[00:01:26] Compiling file prog.psc
-[00:01:26] Lexical analysis
-[00:01:26] Variable analysis
-[00:01:26] Class analysis
-[00:01:26] Translation
-[00:01:26] Assembling code
-[00:01:26] Writing code to file
-[00:01:26] Finished compiling file prog.psc
-[00:01:26] Reading configuration file
-[00:01:26] Copying built in libriaries
-[00:01:26] Copying additional files
-[00:01:26] Copying additional built in libriaries
-[00:01:26] Building executable
-[00:01:26] Writing run.h
-[00:01:26] Writing run.cpp
-[00:01:26] Starting gcc compyler
-[00:01:34] 
+[13:52:20] Compiler started
+[13:52:20] Bin directory already exists
+[13:52:20] Reading files in floader
+[13:52:20] Compiling file prog.psc
+[13:52:20] Lexical analysis
+[13:52:20] Variable analysis
+[13:52:20] Class analysis
+[13:52:20] Translation
+[13:52:20] Assembling code
+[13:52:20] Writing code to file
+[13:52:20] Finished compiling file prog.psc
+[13:52:20] Reading configuration file
+[13:52:20] Copying built in libriaries
+[13:52:20] Copying additional files
+[13:52:20] Copying additional built in libriaries
+[13:52:20] Building executable
+[13:52:20] Writing run.h
+[13:52:20] Writing run.cpp
+[13:52:20] Starting gcc compyler
+[13:52:23] 
 
-[00:01:34] Compilation successful!
+[13:52:23] Compilation successful!

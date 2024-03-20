@@ -142,26 +142,15 @@ try:
         pass
 
     print_log("Copying built in libriaries")
-    buildfiles = buildfiles + f"{bin_dir}{lib}/lib.h "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/lib.cpp "
+
     # buildfiles = buildfiles + f"{bin_dir}/lib/file_manager.cpp "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/ponyexceptions.h "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/exceptions.cpp "
+
     buildfiles = buildfiles + f"{bin_dir}{lib}/run.cpp "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/linked_list.h "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/ponystring.cpp "
-    buildfiles = buildfiles + f"{bin_dir}{lib}/ponystring.h "
+
     
     # buildfiles = buildfiles + f"{bin_dir}/lib/math.cpp "
 
     print_log("Copying additional files")
-    shutil.copy(f"{absp}lib/lib.h", bin_dir + lib)
-    shutil.copy(f"{absp}lib/lib.cpp", bin_dir  + lib)
-    shutil.copy(f"{absp}lib/ponyexceptions.h", bin_dir  + lib)
-    shutil.copy(f"{absp}lib/exceptions.cpp", bin_dir  +  lib)
-    shutil.copy(f"{absp}lib/linked_list.h", bin_dir  +  lib)
-    shutil.copy(f"{absp}lib/ponystring.cpp", bin_dir  +  lib)
-    shutil.copy(f"{absp}lib/ponystring.h", bin_dir  +  lib)
 
     print_log("Copying additional built in libriaries")
     for i in includes:
@@ -183,8 +172,9 @@ try:
         buildfiles = buildfiles + file + " "
 
     print_log("Starting gcc compyler")
-    print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I lib -finput-charset=UTF-8 {buildfiles} -lws2_32")
-    result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I lib -finput-charset=UTF-8 {buildfiles} -lws2_32", capture_output=True)
+    print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32")
+
+    result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32", capture_output=True)
 
     print(result.stdout)
     # print_log(gccdocksparser.parse(result.stderr.decode()))

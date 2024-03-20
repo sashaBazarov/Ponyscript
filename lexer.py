@@ -6,7 +6,7 @@ from lib.classes import buildintclasses
 replacements = wordlist
 
 variable_types = ['int', 'float', 'double', 'char', 'bool', 'string']
-list_types = ['list']
+list_types = ['List', 'PPair']
 
 
 def find_variables(tokens):
@@ -17,6 +17,7 @@ def find_variables(tokens):
             while tokens[i + j] == '*':
                 j += 1
             variables[tokens[i+j]] = tokens[i]
+
         elif tokens[i] in list_types:
             j = 2
             while tokens[i + j] == '*':
@@ -65,17 +66,20 @@ def find_classes(tokens:list):
 
     return classes, tokens
 
-def translate_tokens(tokens, variables, classes):
+def translate_tokens(tokens, variables, classes:list):
     for i in buildintclasses:
         classes.append(i)
     includes = find_includes(tokens)
     for i in range(0, len(tokens)):
         try:
-            if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and tokens[i] not in constants and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
-                if tokens[i] in replacements:
-                    tokens[i] = replacements[tokens[i]]
-                else: 
-                    raise Exception(f"Error: {tokens[i]} can`t be defined as command or object name")
+            if tokens[i] in variables:
+                print(tokens[i])
+            else:
+                if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in list_types and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and tokens[i] not in constants and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
+                    if tokens[i] in replacements:
+                        tokens[i] = replacements[tokens[i]]
+                    else: 
+                        raise Exception(f"Error: {tokens[i]} can`t be defined as command or object name")
         except IndexError: pass
     return tokens
 

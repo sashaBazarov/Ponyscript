@@ -32,11 +32,11 @@ void readkey(){
     getch();
 }
 
-ponystring str(int num, bool) {
+ponystring str(int num) {
     return ponystring::fromInt(num);
 }
 
-ponystring str(double num, bool) {
+ponystring str(double num) {
     return ponystring::fromDouble(num);
 }
 
