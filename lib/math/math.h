@@ -23,5 +23,6 @@ double ctan(double x);
 
 // Function to calculate natural logarithm
 double log(double x);
+
 // Function to calculate radians
 double radians(double angle);

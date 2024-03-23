@@ -8,7 +8,9 @@ import gccdocksparser
 from logs import *
 from datetime import datetime
 from headergenerator import *
+
 try:
+    absp = os.path.abspath(__file__).replace("compiler.py", "")
 
     floader_dir = sys.argv[1]
 
@@ -105,10 +107,24 @@ try:
                     for i in find_variables(tokens):
                         variables[i] = find_variables(tokens)[i]
 
+                    for i in includes:
+                        temptokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())
+                        tempvariables = find_variables(temptokens)
+                        for j in tempvariables:
+                            variables[j] = tempvariables[j]
+
+                    
+
                     print_log("Class analysis")
                     classes_list, updated_tokens = find_classes(tokens)
                     for i in classes_list:
                         classes.append(i)
+
+                    for i in includes:
+                        tempclasses, temptokens = find_classes(lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read()))
+                        for j in tempclasses:
+                            classes.append(j)
+
                     print_log("Translation")
 
                     tokens = translate_tokens(updated_tokens, variables, classes)
@@ -130,16 +146,17 @@ try:
             if cfgline.split("=")[0].strip() == "[File Name]":
                 settings["filename"] = cfgline.split("=")[1].strip()
 
-    absp = os.path.abspath(__file__).replace("compiler.py", "")
 
-    lib = "/lib" #Эта фигня нужна для дебага, gcc переодически теряет файлы в каталого lib. "/lib" - значение для каталога lib
-    try:
-        shutil.rmtree(f"{bin_dir}{lib}") #Удаляем каталог lib, если он существует
-    except: pass
-    try:
-        os.mkdir(f"{bin_dir}{lib}")
-    except FileExistsError:
-        pass
+
+    lib = "" #Эта фигня нужна для дебага, gcc переодически теряет файлы в каталого lib. "/lib" - значение для каталога lib
+    if lib != "":
+        try:
+            shutil.rmtree(f"{bin_dir}{lib}") #Удаляем каталог lib, если он существует
+        except: pass
+        try:
+            os.mkdir(f"{bin_dir}{lib}")
+        except FileExistsError:
+            pass
 
     print_log("Copying built in libriaries")
 
@@ -154,8 +171,8 @@ try:
 
     print_log("Copying additional built in libriaries")
     for i in includes:
-        shutil.copy(f"{absp}lib/{i.strip()}.cpp", bin_dir + lib)
-        shutil.copy(f"{absp}lib/{i.strip()}.h", bin_dir + lib)
+        shutil.copy(f"{absp}lib/{i.strip()}/{i.strip()}.cpp", bin_dir + lib)
+        shutil.copy(f"{absp}lib/{i.strip()}/{i.strip()}.h", bin_dir + lib)
         buildfiles = buildfiles + f"{bin_dir}{lib}/{i}.cpp "
         buildfiles = buildfiles + f"{bin_dir}{lib}/{i}.h "
 
@@ -168,16 +185,15 @@ try:
     print_log("Writing run.cpp")
     
     shutil.copy(f"{absp}lib/run.cpp", bin_dir+ lib)
-    for file in extract_additional_files(f"{floader_dir}/.ponycfg"):
-        buildfiles = buildfiles + file + " "
+
 
     print_log("Starting gcc compyler")
     print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32")
 
     result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32", capture_output=True)
 
-    print(result.stdout)
-    # print_log(gccdocksparser.parse(result.stderr.decode()))
+    # print(result.stderr.decode())
+    print_log(gccdocksparser.parse(result.stderr.decode()))
 
     if result.returncode == 0:
         print_log("\n")

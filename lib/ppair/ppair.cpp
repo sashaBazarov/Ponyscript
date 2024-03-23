@@ -18,10 +18,11 @@ private:
     size_t capacity;
 
     // Хэш-функция для вычисления индекса в хэш-таблице
-    size_t hash(const KeyType& key) const {
-        // Простейшая хэш-функция - вычисляем остаток от деления ключа на размер хэш-таблицы
-        return std::hash<KeyType>{}(key) % capacity;
-    }
+    template<typename KeyType, typename ValueType>
+    size_t PPair<KeyType, ValueType>::hash(const KeyType& key) const {
+    // Простейшая хэш-функция - вычисляем остаток от деления ключа на размер хэш-таблицы
+    return std::hash<KeyType>{}(key) % capacity;
+}
 
 public:
     // Конструктор с параметрами для создания словаря с начальным списком пар ключ-значение

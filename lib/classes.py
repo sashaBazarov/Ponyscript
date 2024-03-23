@@ -1,1 +1,0 @@
-buildintclasses:list = ["Random", "ponyregex"]

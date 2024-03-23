@@ -17,12 +17,11 @@ Ponyscript comes with its own compiler, enabling easy transformation of Ponyscri
 ## Example Code
 
 ```ponyscript
-using libspace std; 
 
-num magic->>(int argc, char *argv[])
+int magic(int argc, char *argv[])
 {
-	string a = replaceAll->>("Sample string", "Sample", "pony");
-	neigh->>(a);
+	string a = "Hello Equestria";
+	neighln(a);
 }
 ```
 

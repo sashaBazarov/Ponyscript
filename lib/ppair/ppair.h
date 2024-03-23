@@ -4,6 +4,9 @@
 #include <functional>
 
 template<typename KeyType, typename ValueType>
+
+
+
 class PPair {
 private:
     // Внутренняя структура данных для хранения пар ключ-значение
@@ -18,10 +21,16 @@ private:
     size_t capacity;
 
     // Хэш-функция для вычисления индекса в хэш-таблице
-    size_t hash(const KeyType& key) const {
+        template<typename KeyType, typename ValueType>
+        size_t PPair<KeyType, ValueType>::hash(const KeyType& key) const {
+
         // Простейшая хэш-функция - вычисляем остаток от деления ключа на размер хэш-таблицы
         return std::hash<KeyType>{}(key) % capacity;
+        
     }
+
+
+    
 
 public:
     // Конструктор с параметрами для создания словаря с начальным списком пар ключ-значение
@@ -52,7 +61,7 @@ public:
 
     // Перегрузка оператора [] для доступа к значению по ключу
     ValueType& operator[](const KeyType& key) {
-        size_t index = hash(key);
+        size_t index = PPair<KeyType, ValueType>::hash(key);
         for (auto& pair : table[index]) {
             if (pair.key == key) {
                 return pair.value;

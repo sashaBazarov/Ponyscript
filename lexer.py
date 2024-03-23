@@ -1,13 +1,13 @@
 import re
-from lib.wordlist import wordlist
-from lib.constants import constants
-from lib.libs import libs
-from lib.classes import buildintclasses
+from wordlist import wordlist
+from libparser import parcse_libs
+
 replacements = wordlist
 
 variable_types = ['int', 'float', 'double', 'char', 'bool', 'string']
 list_types = ['List', 'PPair']
 
+libs = parcse_libs()
 
 def find_variables(tokens):
     variables = {}
@@ -40,7 +40,7 @@ def find_includes(tokens):
     for i in range(0, len(tokens)):
         if tokens[i] == 'friend':
             if tokens[i+1] in libs:
-                tokens[i+1] = f'"{libs[tokens[i+1]]}.h"'
+                tokens[i+1] = f'"{tokens[i+1]}.h"'
             else: tokens[i+1] = f'"{tokens[i+1]}.h"'
             includes.append(tokens[i+1])
 
@@ -67,15 +67,13 @@ def find_classes(tokens:list):
     return classes, tokens
 
 def translate_tokens(tokens, variables, classes:list):
-    for i in buildintclasses:
-        classes.append(i)
     includes = find_includes(tokens)
     for i in range(0, len(tokens)):
         try:
             if tokens[i] in variables:
-                print(tokens[i])
+                pass
             else:
-                if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in list_types and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and tokens[i] not in constants and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
+                if tokens[i+1] != '(' and tokens[i] not in variables and tokens[i] not in list_types and tokens[i] not in includes and tokens[i] != '\n' and tokens[i] not in ['+', '-', '*', '/', '=', '.', ',', ';', '(', ')', '[', ']', '{', '}', ':', '<', '>'] and not tokens[i].startswith('"') and not tokens[i].endswith('"') and not tokens[i].isdigit() and tokens[i] not in classes and not tokens[i].startswith('<') and not tokens[i].endswith('>'):
                     if tokens[i] in replacements:
                         tokens[i] = replacements[tokens[i]]
                     else: 
