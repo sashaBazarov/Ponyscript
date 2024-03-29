@@ -91,8 +91,8 @@ try:
 
                 with open(f"{bin_dir}/{filename}{fileext}", "a", encoding="utf-8") as output:
                     output.write('#include <iostream>' + '\n')
-                    output.write('#include "lib.h"' + '\n')
-                    output.write('#include "linked_list.h"' + '\n')
+                    output.write(f'#include "{absp}lib/lib.h"' + '\n')
+                    output.write(f'#include "{absp}lib/linked_list.h"' + '\n')
                     output.write(f'#define FILE_INFO {name}' + '\n')
                     #output.write('using namespace std;' + '\n')
 
@@ -148,7 +148,7 @@ try:
 
 
 
-    lib = "" #Эта фигня нужна для дебага, gcc переодически теряет файлы в каталого lib. "/lib" - значение для каталога lib
+    lib = "/lib" #Эта фигня нужна для дебага, gcc переодически теряет файлы в каталого lib. "/lib" - значение для каталога lib
     if lib != "":
         try:
             shutil.rmtree(f"{bin_dir}{lib}") #Удаляем каталог lib, если он существует
@@ -181,24 +181,67 @@ try:
 
     with open(f"{bin_dir}{lib}/run.h", "w") as run:
         run.write(f'int magic(int argc, char *argv[]);')
-    
+
+
     print_log("Writing run.cpp")
+
+    with open(f"{bin_dir}{lib}/run.cpp", "w") as run:
+
+        content = """"""
+
+        content = content + f'#include "{absp}lib/lib.h"' + '\n'
+        content = content + f'#include "{absp}lib/linked_list.h"' + '\n'  
+        content = content + f'#include "run.h"' + '\n'
+        content = content + f'#include "{absp}lib/ponyexceptions.h"' + '\n' 
+
+        content = content + """
+
+            int main(int argc, char *argv[]) {
+            try
+            {
+                return magic(argc, argv);
+
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what();
+            }
+            catch (const PonyException& e) 
+            {
+                std::cerr << "Exception: " << e.what() << "File: " << e.getFile() << "Line: " << e.getLine() << std::endl;
+            }
+
+
+            }
+            """
+        run.write(content)
     
-    shutil.copy(f"{absp}lib/run.cpp", bin_dir+ lib)
+    # shutil.copy(f"{absp}lib/run.cpp", bin_dir+ lib)
 
 
     print_log("Starting gcc compyler")
-    print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32")
 
-    result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} -I {absp}lib -L {absp}lib/dlls -l ponylib -finput-charset=UTF-8 {buildfiles} -lws2_32", capture_output=True)
 
-    # print(result.stderr.decode())
-    print_log(gccdocksparser.parse(result.stderr.decode()))
+    objectfiles = ""
+    for i in buildfiles.split():
 
-    if result.returncode == 0:
-        print_log("\n")
+        if os.path.basename(i).split('.')[-1] == 'cpp':
+            result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -c  {i} -o {bin_dir}/{os.path.basename(i).split('.')[0]}.o", capture_output=True)
+            objectfiles = objectfiles + f"{bin_dir}/{os.path.basename(i).split('.')[0]}.o "
+            if result.returncode != 0:
+                print(gccdocksparser.parse(result.stderr.decode()))
+
+
+    compiler = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -LF:\PonyScript\lib -lponylib -finput-charset=UTF-8 -lstdc++ ", capture_output=True)
+
+    for i in os.listdir(bin_dir):
+        if i.split('.')[-1] == 'o':
+            os.remove(bin_dir + "/" + i)
+
+    if compiler.returncode == 0:
         print_log("Compilation successful!") 
     else:
+        print_log(gccdocksparser.parse(compiler.stderr.decode()))
         raise Exception("Compilation failed!")
 
 except Exception as e:
