@@ -1,6 +1,6 @@
 # Ponyscript
 
-Ponyscript is a high-level programming language inspired by the popular TV series "Friends is Magic". It is designed to provide simplicity and convenience in coding, offering developers a clear and concise syntax.
+Ponyscript is a high-level programming language inspired by the popular TV series "Friendship is Magic". It is designed to provide simplicity and convenience in coding, offering developers a clear and concise syntax.
 
 ## Language Features
 
