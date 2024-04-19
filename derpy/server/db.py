@@ -1,26 +1,66 @@
 import sqlite3
 
 
+
 def get_package(name) -> list:
-    connection = sqlite3.connect('packages.db')
-    cursor = connection.cursor()
+    try:
+        connection = sqlite3.connect('packages.db')
+        cursor = connection.cursor()
 
-    cursor.execute('SELECT `name`, `version`, `repository`  FROM `packages` WHERE `name` = ?', (name,))
+        cursor.execute('SELECT `name`, `repository`  FROM `packages` WHERE `name` = ?', (name,))
 
-    package = cursor.fetchall()
+        package = cursor.fetchall()
 
-    connection.close()
+        connection.close()
+        
+        return package[0]
+    except:
+        return []
     
-    return package[0]
 
+def get_package_url(name) -> list:
+    try:
+        connection = sqlite3.connect('packages.db')
+        cursor = connection.cursor()
 
-def add_package(name, version, repository):
-    connection = sqlite3.connect('packages.db')
-    cursor = connection.cursor()
+        cursor.execute('SELECT `repository`  FROM `packages` WHERE `name` = ?', (name,))
 
-    cursor.execute('INSERT INTO `packages` (`name`, `version`, `repository`) VALUES (?, ?, ?)', (name, version, repository))
+        package = cursor.fetchall()
 
-    connection.commit()
-    connection.close()
+        connection.close()
+        
+        return package[0][0]
+    except:
+        return []
+
+def add_package(name, repository) -> bool:
+    try:
+        connection = sqlite3.connect('packages.db')
+        cursor = connection.cursor()
+
+        cursor.execute('INSERT INTO `packages` (`name`, `repository`) VALUES (?, ?)', (name, repository))
+
+        connection.commit()
+        connection.close()
+        return True
+    except:
+        return False
+
+def find_package(name) -> list:
+    try:
+        connection = sqlite3.connect('packages.db')
+        cursor = connection.cursor()
+
+        cursor.execute(f'''SELECT `name`, `version` FROM `packages` WHERE `name` LIKE '%{name}%' ''')
+
+        package = cursor.fetchall()
+
+        
+
+        connection.close()
+
+        return package
+    except: 
+        return []
 
 

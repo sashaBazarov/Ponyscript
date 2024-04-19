@@ -1,5 +1,4 @@
 import os
-
 absp = os.path.abspath(__file__).replace("libparser.py", "")
 
 def list_directories(path):
@@ -14,12 +13,24 @@ def list_directories(path):
     return directories
 
 
+
 def parcse_libs():
     libs = []
+    psclibs = []
     for i in list_directories(f"{absp}lib"):
         if i != "dlls":
             if os.path.isfile(f"{absp}lib/{i}/libinfo"):
-                libs.append(i)
+                if os.path.isfile(f"{absp}lib/{i}/{i}.psc"):
+                    psclibs.append(i)
+                else: libs.append(i)
+
+
+
                 
-    return libs
+    return libs, psclibs
+
+
+
+
+print(parcse_libs())
 

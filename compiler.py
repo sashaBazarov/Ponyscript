@@ -59,6 +59,7 @@ try:
     variables = {}
     classes = []
     includes = []
+    namespaces = []
 
     for name in os.listdir(floader_dir):
 
@@ -92,42 +93,63 @@ try:
                 with open(f"{bin_dir}/{filename}{fileext}", "a", encoding="utf-8") as output:
                     output.write('#include <iostream>' + '\n')
                     output.write(f'#include "{absp}lib/lib.h"' + '\n')
-                    output.write(f'#include "{absp}lib/linked_list.h"' + '\n')
+                    output.write(f'#include "{absp}lib\linked_list.h"' + '\n')
                     output.write(f'#define FILE_INFO {name}' + '\n')
                     #output.write('using namespace std;' + '\n')
 
                     print_log("Lexical analysis")
                     tokens = lexical_analyzer(code)
 
+                    tokens = remove_comments(tokens)
+
+                    print(tokens)
+
                     for i in get_libs(tokens):
                         if i not in includes:
                             includes.append(i)
 
+                    
+
                     print_log("Variable analysis")
                     for i in find_variables(tokens):
                         variables[i] = find_variables(tokens)[i]
+                    print(variables)
+                    
 
                     for i in includes:
                         temptokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())
+                        temptokens = remove_comments(temptokens)
                         tempvariables = find_variables(temptokens)
                         for j in tempvariables:
                             variables[j] = tempvariables[j]
 
                     
-
+                    
                     print_log("Class analysis")
                     classes_list, updated_tokens = find_classes(tokens)
                     for i in classes_list:
                         classes.append(i)
 
                     for i in includes:
-                        tempclasses, temptokens = find_classes(lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read()))
+                        tempclasses, temptokens = find_classes(remove_comments(lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())))
                         for j in tempclasses:
                             classes.append(j)
 
+                    print_log("Namespace analysys")
+                    for i in find_namespaces(tokens):
+                        namespaces.append(i)
+                    
+                    for i in includes:
+                        tempnamespaces = find_namespaces(remove_comments(lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())))
+                        for j in tempnamespaces:
+                            namespaces.append(j)
+
                     print_log("Translation")
 
-                    tokens = translate_tokens(updated_tokens, variables, classes)
+                    tokens = translate_tokens(updated_tokens, variables, classes, namespaces, includes)
+
+                    tokens = format_strings(tokens)
+                    
                     print_log("Assembling code")
                     assembled_code = assemble_code(tokens)
                     print_log("Writing code to file")
@@ -169,8 +191,9 @@ try:
 
     print_log("Copying additional files")
 
-    print_log("Copying additional built in libriaries")
+    print_log("Copying additional built-in libriaries")
     for i in includes:
+
         shutil.copy(f"{absp}lib/{i.strip()}/{i.strip()}.cpp", bin_dir + lib)
         shutil.copy(f"{absp}lib/{i.strip()}/{i.strip()}.h", bin_dir + lib)
         buildfiles = buildfiles + f"{bin_dir}{lib}/{i}.cpp "
@@ -189,10 +212,10 @@ try:
 
         content = """"""
 
-        content = content + f'#include "{absp}lib/lib.h"' + '\n'
-        content = content + f'#include "{absp}lib/linked_list.h"' + '\n'  
+        content = content + f'#include "{absp}lib\linked_list.h"' + '\n'
+        content = content + f'#include "{absp}lib\lib.h"' + '\n'
         content = content + f'#include "run.h"' + '\n'
-        content = content + f'#include "{absp}lib/ponyexceptions.h"' + '\n' 
+        content = content + f'#include "{absp}lib\ponyexceptions.h"' + '\n' 
 
         content = content + """
 
@@ -226,22 +249,25 @@ try:
     for i in buildfiles.split():
 
         if os.path.basename(i).split('.')[-1] == 'cpp':
-            result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -c  {i} -o {bin_dir}/{os.path.basename(i).split('.')[0]}.o", capture_output=True)
+            print_log("Compiling " + i)
+            result = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -c  {i} -o {bin_dir}/{os.path.basename(i).split('.')[0]}.o -I{absp}lib -I{bin_dir}/lib", capture_output=True)
             objectfiles = objectfiles + f"{bin_dir}/{os.path.basename(i).split('.')[0]}.o "
             if result.returncode != 0:
                 print(gccdocksparser.parse(result.stderr.decode()))
+                raise Exception("Compilation failed!")
 
 
-    compiler = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -LF:\PonyScript\lib -lponylib -finput-charset=UTF-8 -lstdc++ ", capture_output=True)
+    print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -L{absp}lib -I{absp}lib -lponylib -finput-charset=UTF-8 -lstdc++ ")
+    compiler = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -I{absp}lib -I{bin_dir}/lib -L{absp}lib  -lponylib -finput-charset=UTF-8 -lstdc++ ", capture_output=True)
 
-    for i in os.listdir(bin_dir):
-        if i.split('.')[-1] == 'o':
-            os.remove(bin_dir + "/" + i)
+    # for i in os.listdir(bin_dir):
+    #     if i.split('.')[-1] == 'o':
+    #         os.remove(bin_dir + "/" + i)
 
     if compiler.returncode == 0:
         print_log("Compilation successful!") 
     else:
-        print_log(gccdocksparser.parse(compiler.stderr.decode()))
+        print_log(compiler.stderr.decode())
         raise Exception("Compilation failed!")
 
 except Exception as e:

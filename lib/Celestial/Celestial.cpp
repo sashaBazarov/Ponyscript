@@ -1,89 +1,136 @@
+#define SECURITY_WIN32
+
 #include "Celestial.h"
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#include <security.h>
 #include <iostream>
-#include <sstream>
+#include <sspi.h>
 
-#pragma comment(lib, "Ws2_32.lib")
-
-
-std::string http_get_request(const std::string& url) {
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "WSAStartup failed." << std::endl;
-        return "";
+HttpRequest::HttpRequest() {
+    // Initialize security package.
+    PSecurityFunctionTableW securityFunctionTable;
+    securityFunctionTable = InitSecurityInterfaceW();
+    if (!securityFunctionTable) {
+        std::cerr << "Failed to initialize security package." << std::endl;
     }
 
-    SOCKET ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (ConnectSocket == INVALID_SOCKET) {
-        std::cerr << "Error at socket(): " << WSAGetLastError() << std::endl;
-        WSACleanup();
-        return "";
-    }
+    // Initialize WinHTTP session.
+    hSession = WinHttpOpen(L"A WinHTTP Example Program/1.0",
+        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+        WINHTTP_NO_PROXY_NAME,
+        WINHTTP_NO_PROXY_BYPASS, WINHTTP_FLAG_SECURE);
+}
 
-    std::istringstream iss(url);
-    std::string host, path;
-    std::getline(std::getline(iss, host, '/'), path);
 
-    struct addrinfo* result = nullptr, * ptr = nullptr, hints;
+HttpRequest::~HttpRequest() {
 
-    ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-
-    if (getaddrinfo(host.c_str(), "http", &hints, &result) != 0) {
-        std::cerr << "getaddrinfo failed." << std::endl;
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return "";
-    }
     
+    if (hSession) {
+        WinHttpCloseHandle(hSession);
+    }
+}
 
-    ptr = result;
+bool HttpRequest::sendGetRequest(const std::wstring& url, std::wstring& response) {
+    return sendGetRequestWithUserAgent(url, L"WinHTTP Example Program", response);
+}
 
-    sockaddr_in clientService;
-    clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = ((sockaddr_in*)ptr->ai_addr)->sin_addr.s_addr;
-    clientService.sin_port = htons(80);
-
-    if (connect(ConnectSocket, (SOCKADDR*) & clientService, sizeof(clientService)) == SOCKET_ERROR) {
-        std::cerr << "Failed to connect." << std::endl;
-        freeaddrinfo(result);
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return "";
+bool HttpRequest::sendGetRequestWithUserAgent(const std::wstring& url, const std::wstring& userAgent, std::wstring& response) {
+    if (!hSession) {
+        std::cerr << "Failed to open WinHTTP session\n";
+        return false;
     }
 
-    std::ostringstream request_stream;
-    request_stream << "GET /" << path << " HTTP/1.1\r\n";
-    request_stream << "Host: " << host << "\r\n";
-    request_stream << "Connection: close\r\n";
-    request_stream << "\r\n";
-    std::string request = request_stream.str();
+    // Connect to the server.
+    hConnect = WinHttpConnect(hSession, url.c_str(),
+        INTERNET_DEFAULT_HTTPS_PORT, 0);
 
-    if (send(ConnectSocket, request.c_str(), request.size(), 0) == SOCKET_ERROR) {
-        std::cerr << "Send failed." << std::endl;
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return "";
+    if (!hConnect) {
+        std::cerr << "Failed to connect to server\n";
+        return false;
     }
 
-    std::string response;
-    char buffer[1024];
-    int bytesReceived;
+    // Create HTTP request.
+    HINTERNET hRequest = WinHttpOpenRequest(hConnect, L"GET",
+        NULL, NULL, WINHTTP_NO_REFERER,
+        WINHTTP_DEFAULT_ACCEPT_TYPES,
+        WINHTTP_FLAG_SECURE);
+
+    if (!hRequest) {
+        std::cerr << "Failed to open HTTP request\n";
+        WinHttpCloseHandle(hConnect);
+        return false;
+    }
+
+    // Set User-Agent header.
+    if (!WinHttpAddRequestHeaders(hRequest, (L"User-Agent: " + userAgent).c_str(), -1, WINHTTP_ADDREQ_FLAG_REPLACE)) {
+        std::cerr << "Failed to set User-Agent header\n";
+        WinHttpCloseHandle(hRequest);
+        WinHttpCloseHandle(hConnect);
+        return false;
+    }
+
+    // Send request.
+    if (!WinHttpSendRequest(hRequest,
+        WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+        WINHTTP_NO_REQUEST_DATA, 0,
+        0, 0)) {
+        std::cerr << "Failed to send HTTP request\n";
+        WinHttpCloseHandle(hRequest);
+        WinHttpCloseHandle(hConnect);
+        return false;
+    }
+
+    // Receive response.
+    if (!WinHttpReceiveResponse(hRequest, NULL)) {
+        std::cerr << "Failed to receive response\n";
+        WinHttpCloseHandle(hRequest);
+        WinHttpCloseHandle(hConnect);
+        return false;
+    }
+
+    // Read response data.
+    DWORD dwSize = 0;
+    DWORD dwDownloaded = 0;
+    LPWSTR pszOutBuffer = NULL;
+    bool success = false;
+
     do {
-        bytesReceived = recv(ConnectSocket, buffer, sizeof(buffer), 0);
-        if (bytesReceived > 0)
-            response.append(buffer, bytesReceived);
-        else if (bytesReceived == 0)
-            std::cerr << "Connection closed." << std::endl;
-        else
-            std::cerr << "Recv failed." << std::endl;
-    } while (bytesReceived > 0);
+        // Check for available data.
+        dwSize = 0;
+        if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) {
+            std::cerr << "Error in WinHttpQueryDataAvailable.\n";
+            break;
+        }
 
-    closesocket(ConnectSocket);
-    WSACleanup();
+        // Allocate space for the buffer.
+        pszOutBuffer = new WCHAR[dwSize / sizeof(WCHAR) + 1];
+        if (!pszOutBuffer) {
+            std::cerr << "Out of memory\n";
+            dwSize = 0;
+            break;
+        }
 
-    return response;
+        // Read the data.
+        ZeroMemory(pszOutBuffer, dwSize + sizeof(WCHAR));
+        if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer,
+            dwSize, &dwDownloaded)) {
+            std::cerr << "Error in WinHttpReadData.\n";
+            delete[] pszOutBuffer;
+            break;
+        }
+
+        // Append data to response.
+        response.append(pszOutBuffer, dwDownloaded / sizeof(WCHAR));
+
+        // Free the memory allocated to the buffer.
+        delete[] pszOutBuffer;
+
+        success = true;
+    } while (dwSize > 0);
+
+    // Close request handle.
+    WinHttpCloseHandle(hRequest);
+    // Close connection handle.
+    WinHttpCloseHandle(hConnect);
+
+    return success;
 }

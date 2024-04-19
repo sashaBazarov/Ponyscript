@@ -1,6 +1,5 @@
 #include <iostream>
 #include <filesystem>
-#include <format>
 #include <fstream>
 
 
@@ -18,7 +17,14 @@ int main(int argc, char *argv[]){
 
     std::string path = argv[0];
 
-    string command = stringpath + "/python/python.exe" + " " + stringpath + "/derpy/derpy.py" + " " + argv[1];
+    std::string args = "";
+
+    for(int i = 1; i < argc; i++){
+        args += argv[i];
+        args += " ";
+    }
+
+    string command = stringpath + "/python/python.exe" + " " + stringpath + "/derpy/derpy.py" + " " + args;
 
     system(command.c_str());
     

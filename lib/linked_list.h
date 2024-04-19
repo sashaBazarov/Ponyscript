@@ -1,10 +1,13 @@
-#ifndef LIST_H
-#define LIST_H
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
 
+// list.cpp
 #include <iostream>
+#include <string>
 #include <sstream>
 #include <initializer_list>
 #include <stdexcept>
+#include "ponystring.h"
 
 template<typename T>
 class Node {
@@ -46,7 +49,7 @@ public:
         size++;
     }
 
-    std::string toString() const {
+    ponystring toString() const {
         std::stringstream ss;
         Node<T>* current = head;
         while (current) {
@@ -177,8 +180,9 @@ public:
     size_t getSize() const {
         return size;
     }
+
+    int length() const {
+        return size;
+    }
 };
-
-
-
-#endif // LIST_H
+#endif

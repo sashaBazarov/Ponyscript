@@ -1,28 +1,26 @@
-[13:59:28] Compiler started
-[13:59:28] Bin directory already exists
-[13:59:28] Reading files in floader
-[13:59:28] Compiling file ababa.psc
-[13:59:28] Lexical analysis
-[13:59:28] Variable analysis
-[13:59:28] Class analysis
-[13:59:28] Translation
-[13:59:28] Assembling code
-[13:59:28] Writing code to file
-[13:59:28] Finished compiling file ababa.psc
-[13:59:28] Compiling file prog.psc
-[13:59:28] Lexical analysis
-[13:59:28] Variable analysis
-[13:59:28] Class analysis
-[13:59:28] Translation
-[13:59:28] Assembling code
-[13:59:28] Writing code to file
-[13:59:28] Finished compiling file prog.psc
-[13:59:28] Reading configuration file
-[13:59:28] Copying built in libriaries
-[13:59:28] Copying additional files
-[13:59:28] Copying additional built in libriaries
-[13:59:28] Building executable
-[13:59:28] Writing run.h
-[13:59:28] Writing run.cpp
-[13:59:28] Starting gcc compyler
-[13:59:31] Compilation successful!
+[23:28:55] Compiler started
+[23:28:55] Bin directory already exists
+[23:28:55] Reading files in floader
+[23:28:55] Compiling file prog.psc
+[23:28:55] Lexical analysis
+[23:28:55] Variable analysis
+[23:28:55] Class analysis
+[23:28:55] Namespace analysys
+[23:28:55] Translation
+[23:28:55] Assembling code
+[23:28:55] Writing code to file
+[23:28:55] Finished compiling file prog.psc
+[23:28:55] Reading configuration file
+[23:28:55] Copying built in libriaries
+[23:28:55] Copying additional files
+[23:28:55] Copying additional built-in libriaries
+[23:28:55] Building executable
+[23:28:55] Writing run.h
+[23:28:55] Writing run.cpp
+[23:28:55] Starting gcc compyler
+[23:28:55] Compiling c:/pony/bin/prog.cpp
+[23:28:56] Compiling c:/pony/bin/lib/run.cpp
+[23:28:57] Compiling c:/pony/bin/lib/testlib.cpp
+[23:28:57] Compiling c:/pony/bin/lib/math.cpp
+[23:28:57] Compiling c:/pony/bin/lib/datetime.cpp
+[23:28:58] Compilation successful!

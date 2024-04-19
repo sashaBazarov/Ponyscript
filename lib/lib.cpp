@@ -43,3 +43,12 @@ ponystring str(double num) {
 int to_int(const ponystring& str) {
     return std::stoi(str.str());
 }
+
+List<int> range(int start, int stop, int step) {
+    List<int> list;
+    for (int i = start; i < stop; i += step) {
+        list.append(i);
+    }
+    return list;
+}
+

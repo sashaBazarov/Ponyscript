@@ -9,6 +9,7 @@
 #include <string>
 #include <exception>
 #include "ponystring.h"
+#include "linked_list.h"
 
 #ifndef MYSTRINGFUNCTIONS_H  // Это директива препроцессора, чтобы избежать повторного включения файла
 #define MYSTRINGFUNCTIONS_H
@@ -29,5 +30,7 @@ ponystring str(double num);
 ponystring str(int num);
 
 int to_int(const ponystring& str);
+
+List<int> range(int start, int stop, int step = 1);
 
 #endif

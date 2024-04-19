@@ -26,10 +26,11 @@ def extract_functions_constants_classes(file_path):
 
                 function_match = re.match(r'^\s*([\w:<>]+)\s+([\w:<>]+)\s*\((.*)\)\s*', line) or re.match(r'^\s*([\w:<>]+)\s+([\w:<>]+)\s*\((.*)\)\s*{', line)
                 if function_match:
-                    return_type = function_match.group(1)
-                    function_name = function_match.group(2)
-                    arguments = function_match.group(3)
-                    functions.append((return_type, function_name, arguments))
+                    if "send" not in line.split() and "return" not in line.split():
+                        return_type = function_match.group(1)
+                        function_name = function_match.group(2)
+                        arguments = function_match.group(3)
+                        functions.append((return_type, function_name, arguments))
                 
                 # Extract constants 
                 constant_match = re.match(r'^\s*const\s+([\w:<>]+)\s+([\w]+)\s*=\s*([^;]+);', line) or re.match(r'^\s*constexpr\s+([\w:<>]+)\s+([\w]+)\s*=\s*([^;]+);', line)
@@ -84,3 +85,5 @@ def generate_header(cpp_file_path, header_file_path):
 
 
 
+if __name__ == "__main__":
+    generate_header("C:/pony/ILoveTrixie.psc", "C:/pony/test.h")

@@ -81,7 +81,6 @@ def assemble_tokens(treelist, indent=0):
 
 
 from lexer import *
-from lib.classes import buildintclasses
 tokens = (lexical_analyzer(open("C:\pony\prog.psc", "r").read()))
 variables = find_variables(tokens)
 classes, tokens = find_classes(tokens)
