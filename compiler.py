@@ -109,22 +109,6 @@ try:
                             includes.append(i)
 
                     
-
-                    print_log("Variable analysis")
-                    for i in find_variables(tokens):
-                        variables[i] = find_variables(tokens)[i]
-                    print(variables)
-                    
-
-                    for i in includes:
-                        temptokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())
-                        temptokens = remove_comments(temptokens)
-                        tempvariables = find_variables(temptokens)
-                        for j in tempvariables:
-                            variables[j] = tempvariables[j]
-
-                    
-                    
                     print_log("Class analysis")
                     classes_list, updated_tokens = find_classes(tokens)
                     for i in classes_list:
@@ -134,6 +118,23 @@ try:
                         tempclasses, temptokens = find_classes(remove_comments(lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())))
                         for j in tempclasses:
                             classes.append(j)
+
+
+                    print_log("Variable analysis")
+                    for i in find_variables(tokens, classes):
+                        variables[i] = find_variables(tokens, classes)[i]
+                    print(variables)
+                    
+
+                    for i in includes:
+                        temptokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.h", "r").read())
+                        temptokens = remove_comments(temptokens)
+                        tempvariables = find_variables(temptokens, classes)
+                        for j in tempvariables:
+                            variables[j] = tempvariables[j]
+
+                    
+                    
 
                     print_log("Namespace analysys")
                     for i in find_namespaces(tokens):
@@ -260,9 +261,9 @@ try:
     print(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -L{absp}lib -I{absp}lib -lponylib -finput-charset=UTF-8 -lstdc++ ")
     compiler = subprocess.run(f"{absp}ucrt64\\bin\\g++.exe -o {bin_dir}/{settings['filename']} {objectfiles} -I{absp}lib -I{bin_dir}/lib -L{absp}lib  -lponylib -finput-charset=UTF-8 -lstdc++ ", capture_output=True)
 
-    # for i in os.listdir(bin_dir):
-    #     if i.split('.')[-1] == 'o':
-    #         os.remove(bin_dir + "/" + i)
+    for i in os.listdir(bin_dir):
+        if i.split('.')[-1] == 'o':
+            os.remove(bin_dir + "/" + i)
 
     if compiler.returncode == 0:
         print_log("Compilation successful!") 

@@ -28,7 +28,7 @@ def get_libs(tokens):
 
     return includes
 
-def find_variables(tokens):
+def find_variables(tokens, classes):
     variables = {}
     for i in range(0, len(tokens)):
         if tokens[i] in variable_types:
@@ -43,6 +43,12 @@ def find_variables(tokens):
                 string = tokens[i+1].strip('<').strip('>') 
                 
                 j += 1
+            while tokens[i + j] == '*':
+                j += 1
+            variables[tokens[i+j]] = tokens[i]
+        
+        elif tokens[i] in classes:
+            j = 1
             while tokens[i + j] == '*':
                 j += 1
             variables[tokens[i+j]] = tokens[i]
@@ -158,8 +164,8 @@ def assemble_code(tokens):
 def build_lib(libname):
     i = libname
     lib_tokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.psc", "r").read())
-    lib_variables = find_variables(lib_tokens)
     lib_classes = find_classes(lib_tokens)[0]
+    lib_variables = find_variables(lib_tokens, lib_classes)
     lib_namespaces = find_namespaces(lib_tokens)
     tokens = translate_tokens(lib_tokens, lib_variables, lib_classes, lib_namespaces)
     tokens = format_strings(tokens)
@@ -168,8 +174,8 @@ def build_lib(libname):
         file.write(assembled_code)
 
     lib_tokens = lexical_analyzer(open(f"{absp}lib/{i.strip()}/{i.strip()}.psh", "r").read())
-    lib_variables = find_variables(lib_tokens)
     lib_classes = find_classes(lib_tokens)[0]
+    lib_variables = find_variables(lib_tokens, lib_classes)
     lib_namespaces = find_namespaces(lib_tokens)
     tokens = translate_tokens(lib_tokens, lib_variables, lib_classes, lib_namespaces)
     tokens = format_strings(tokens)

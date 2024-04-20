@@ -2,10 +2,23 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
-
+#include <string>
+#include <cctype>
 
 using namespace std;
 using std::filesystem::current_path;
+
+std::string strip(const std::string &inpt)
+{
+    auto start_it = inpt.begin();
+    auto end_it = inpt.rbegin();
+    while (std::isspace(*start_it))
+        ++start_it;
+    while (std::isspace(*end_it))
+        ++end_it;
+    return std::string(start_it, end_it.base());
+}
+
 
 int main(int argc, char *argv[]){
     
@@ -16,18 +29,17 @@ int main(int argc, char *argv[]){
     filesystem::path directoryPath = exeDir;
     string stringpath = directoryPath.generic_string(); 
 
-    if (argv[0] == "version")
+    if (strip(argv[1]) == "version")
     {
 
-        cout << "Version: 0.0.1 alpha" << endl;
+        cout << "Version: 0.0.2 alpha" << endl;
         return 0;
     }
 
-
-    if (argv[0] == "libinfo")
+    if (strip(argv[1]) == "libinfo")
     {
         std::ifstream file;
-        file.open(stringpath + "/lib/" + argv[1] + "/libinfo"); 
+        file.open(stringpath + "/lib/" + strip(argv[2]) + "/libinfo"); 
         if (file.is_open())
         {
             string line;
@@ -41,7 +53,6 @@ int main(int argc, char *argv[]){
 
     }
 
-    
     std::string path = argv[0];
 
     string command = stringpath + "/python/python.exe" + " " + stringpath + "/compiler.py" + " " + argv[1];

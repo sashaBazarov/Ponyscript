@@ -82,14 +82,16 @@ def assemble_tokens(treelist, indent=0):
 
 from lexer import *
 tokens = (lexical_analyzer(open("C:\pony\prog.psc", "r").read()))
-variables = find_variables(tokens)
 classes, tokens = find_classes(tokens)
-
-translated = translate_tokens(tokens=tokens, variables=variables, classes=classes)
+variables = find_variables(tokens, classes)
+includes = get_libs(tokens)
+namespaces = find_namespaces(tokens)
+tokens = format_strings(tokens)
+translated = translate_tokens(tokens=tokens, variables=variables, classes=classes, includes=includes, namespaces=namespaces)
 tree = build_tree(translated)
 tree_list = tree_to_list(tree)
 
-print(assemble_tokens(nested_lists(tree_list)))
+print(nested_lists(tree_list))
 # assemble_tokens(tree_list)
 
 # print(nested_lists(translated))
